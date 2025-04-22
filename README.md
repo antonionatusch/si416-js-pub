@@ -6,7 +6,7 @@ Este repositorio contiene los avances de la materia **Desarrollo de Aplicaciones
 
 ## 🚀 Instalación de Dependencias
 
-Antes de comenzar, asegúrate de tener instalado [Node.js](https://nodejs.org/) en tu equipo. Luego, sigue estos pasos:
+Antes de comenzar, asegúrate de tener instalado [Node.js](https://nodejs.org/) y [Git](https://git-scm.com/downloads) en tu equipo. Luego, sigue estos pasos:
 
 1. Clona este repositorio en tu máquina local:
    
