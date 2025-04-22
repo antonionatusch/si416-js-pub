@@ -1,0 +1,21 @@
+{
+  "name": "crmproyecto",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node .",
+    "dev": "nodemon ."
+  },
+  "private": true,
+  "dependencies": {
+    "apollo-server": "^3.13.0",
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^16.4.7",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.13.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
