@@ -1,6 +1,7 @@
 const Usuario = require('../Model/Usuario.js');
 const Producto = require('../model/Producto.js');
 const Cliente = require('../Model/Cliente.js');
+const Pedido  = require('../Model/Pedido.js');
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
@@ -131,19 +132,37 @@ const resolvers = {
             //console.log(input);
             const { cliente } = input;
             //Verificar si el cliente existe
-            const clienteExiste = await Cliente.findById(cliente)
+            console.log(cliente)
+            const clienteExiste =
+                await Cliente.findById(cliente)
+            console.log(clienteExiste)
             if (!clienteExiste) {
                 throw new Error('Ese cliente no existe');
             }
             //Verificar si ese cliente pertenece al vendedor
-
+            if (clienteExiste.vendedor.toString() !== ctx.usuario.id){
+                throw new Error("No tiene las credenciales para ese cliente!!!")
+            }
             //Verificar que haya suficiente stock para vender
-
+            for await (const articulo of input.pedido){
+                const { id } = articulo;
+                const producto = await Producto.findById(id);
+                if (articulo.cantidad > producto.existencia){
+                    throw new Error("No existe la cantidad que quiere pedir.");
+                } else {
+                    //Restar la cantida que pedios del inventario
+                    producto.stock = producto.stock - articulo.cantidad;
+                    await producto.save();
+                }
+            }
             //Crear un nuevo pedido
-
+            const nuevoPedido =
+                new Pedido(input)
             //Asignarle un vendedor
-
+            nuevoPedido.vendedor = ctx.usuario.id;
             //Guardar el pedido en la Base de Datos
+            const resultado =  await nuevoPedido.save();
+            return resultado.populate('cliente');
         }
     }
 };
