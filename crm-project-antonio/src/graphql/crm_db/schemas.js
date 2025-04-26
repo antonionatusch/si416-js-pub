@@ -49,7 +49,7 @@ const typeDefs = gql`
 
   type OrderGroup {
     id: ID
-    amount: Int
+    quantity: Int
     name: String
     price: String
   }
