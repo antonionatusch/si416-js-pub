@@ -27,7 +27,69 @@ const resolvers = {
                 throw new (`El producto con ese ID ${id} no existe`);
             }
             return producto;
+        },
+        obtenerPedidos: async () => {
+            try {
+                const pedidos = await Pedido.find({});
+                return pedidos.populate('pedido');
+            } catch (error){
+                console.error(error)
+            }
+        },
+        obtenerPedidosVendedor: async (_, {}, ctx) => {
+            try {
+                const pedidos = await Pedido.find({vendedor: ctx.usuario.id}).populate('cliente');
+                return pedidos;
+            } catch (error){
+                console.error(error)
+            }
+        },
+        obtenerPedidoPorId: async (_, {id}, ctx) => {
+            //Verificar si el pedido existe
+            const pedido = await Pedido.findById(id);
+            if (!pedido) {
+                throw new Error('Pedido no existe!!!');
+            }
+            //Solo puede ser visible el pedido quien lo creo o lo registró
+            if (pedido.vendedor.toString() !== ctx.usuario.id) {
+                throw new Error('No tiene las credenciales para hacer esto!!!');
+            }
+            return pedido.populate('cliente');
+        },
+        obtenerPedidosEstados: async (_, { estado }, ctx) => {
+            console.log( estado);
+            return await Pedido.find({vendedor: ctx.usuario.id, estado}).populate('cliente');
+        },
+        mejoresClientes: async () => {
+            const clientes = await Pedido.aggregate([
+                { $match: { estado: "COMPLETADO" } },
+                {
+                    $group: {
+                        _id: "$cliente",
+                        total: { $sum: "$total" }
+                    }
+                },
+                { $sort: { total: -1 } },
+                { $limit: 10 },
+                {
+                    $lookup: {
+                        from: "clientes", // <-- verifica este nombre
+                        localField: "_id",
+                        foreignField: "_id",
+                        as: "cliente"
+                    }
+                },
+                { $unwind: "$cliente" }, // <-- solo si seguro existe
+                {
+                    $project: {
+                        total: 1,
+                        cliente: 1
+                    }
+                }
+            ]);
+            return clientes;
         }
+
     },
     Mutation: {
         nuevoUsuario: async (_,{input})=>{
@@ -166,4 +228,5 @@ const resolvers = {
         }
     }
 };
+
 module.exports = resolvers;

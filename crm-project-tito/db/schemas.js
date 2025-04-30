@@ -7,8 +7,20 @@ const typeDefs = gql`
         #Productos
         obtenerProductos:[Producto]
         obtenerProducto(id:ID!):Producto
+        
+        #Pedidos
+        obtenerPedidos:[Pedido]
+        obtenerPedidosVendedor:[Pedido]
+        obtenerPedidoPorId(id:ID):Pedido
+        obtenerPedidosEstados(estado: String):[Pedido]
+        buscarProducto(texto: String): [Producto]
+        mejoresClientes: [TopCliente]
+   
     },
-    
+    type TopCliente {
+        total: Float
+        cliente: [Cliente]
+    }
     type Usuario {
         nombre: String,
         apellido: String,
