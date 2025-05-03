@@ -4,6 +4,40 @@ import Client from '../model/Client.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import Order from '../model/Order.js';
+import { ApolloError, ForbiddenError } from 'apollo-server';
+
+const ORDER_POPULATES = [
+  { path: 'client' },
+  { path: 'seller' },
+  { path: 'order.id', select: 'name price' },
+];
+
+const mapOrder = (doc) => {
+  return {
+    id: doc._id.toString(),
+    total: doc.total,
+    state: doc.state,
+    seller: doc.seller._id.toString(),
+    client: {
+      id: doc.client._id.toString(),
+      name: doc.client.name,
+      lastName: doc.client.lastName,
+      email: doc.client.email,
+    },
+    order: doc.order.map((item) => ({
+      id: item.id._id.toString(),
+      name: item.id.name,
+      price: item.id.price,
+      quantity: item.quantity,
+    })),
+  };
+};
+
+const loadOrders = async (filter = {}) => {
+  const docs = await Order.find(filter).populate(ORDER_POPULATES).lean();
+
+  return docs.map(mapOrder);
+};
 
 /**
  * @description Generates a JWT token
@@ -40,12 +74,47 @@ const resolvers = {
         console.error(error);
       }
     },
+
     fetchProduct: async (_, { id }) => {
       const product = await Product.findById(id);
       if (!product) {
         throw new `Product with id ${id} does not exist.`();
       }
       return product;
+    },
+
+    fetchOrders: async () => {
+      try {
+        return loadOrders();
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    fetchOrdersBySeller: async (_, _args, { user }) => {
+      const list = await loadOrders({ seller: user.id });
+      if (!list.length) {
+        throw new ApolloError('No orders found for this seller.', 'NO_ORDERS');
+      }
+      return list;
+    },
+
+    fetchOrderByID: async (_, { id }, { user }) => {
+      const doc = await Order.findById(id).populate(ORDER_POPULATES).lean();
+
+      if (!doc) {
+        throw new ApolloError(
+          `Order with ID ${id} does not exist.`,
+          'NOT_FOUND',
+        );
+      }
+
+      const sellerId = doc.seller._id?.toString() || doc.seller.toString();
+      if (sellerId !== user.id) {
+        throw new ForbiddenError(
+          `You are not the seller of this order. Order's seller has ID ${sellerId} and yours is ${user.id}`,
+        );
+      }
+      return mapOrder(doc);
     },
   },
   Mutation: {

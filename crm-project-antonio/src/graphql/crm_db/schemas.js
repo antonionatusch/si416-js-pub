@@ -7,6 +7,14 @@ const typeDefs = gql`
     #Products
     fetchProducts: [Product]
     fetchProduct(id: ID!): Product
+    searchProduct(name: String!): [Product]
+
+    #Orders
+    fetchOrders: [Order]
+    fetchOrdersBySeller: [Order]
+    fetchOrdersByState(state: OrderState): [Order]
+    fetchOrderByID(id: ID!): Order
+    getBestClients: [Client]
   }
 
   type User {

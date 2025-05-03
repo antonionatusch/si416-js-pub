@@ -1,8 +1,25 @@
 import mongoose from 'mongoose';
 
+const OrderItemSchema = mongoose.Schema(
+  {
+    id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+    },
+  },
+  {
+    _id: false,
+  },
+);
+
 const OrderSchema = mongoose.Schema({
   order: {
-    type: Array,
+    type: [OrderItemSchema],
     required: true,
   },
 
